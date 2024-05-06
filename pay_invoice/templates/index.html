@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космические логи</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='neon.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Космические логи</h1>
+        <form id="logForm" class="logForm" method="post">
+            <!-- <label for="log_entry">Сообщение:</label><br>
+            <textarea name="log_entry" id="log_entry" rows="5" cols="50"></textarea><br>
+            <label for="log_level">Уровень:</label>
+            <select name="log_level" id="log_level">
+                <option value="DEBUG">DEBUG</option>
+                <option value="INFO" selected>INFO</option>
+                <option value="WARNING">WARNING</option>
+                <option value="ERROR">ERROR</option>
+            </select><br> -->
+            <!-- <input type="button" id="addLogButton" value="Добавить запись в лог"> -->
+            <input type="button" id="clearLogButton" value="Очистить логи">
+        </form>
+
+        <div class="logs">
+            {% for log in logs %}
+                <div class="log">
+                    <span class="timestamp">{{ log.timestamp }}</span>
+                    <span class="level-{{ log.level|lower }}">{{ log.level }}</span>
+                    <pre>{{ log.message }}</pre>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="analytics">
+        <h2>Аналитика логов</h2>
+        <canvas id="logChart" width="800" height="400"></canvas>
+        <!-- <div class="log-counts">
+            <p>DEBUG: {{ log_counts.DEBUG }}</p>
+            <p>INFO: {{ log_counts.INFO }}</p>
+            <p>WARNING: {{ log_counts.WARNING }}</p>
+            <p>ERROR: {{ log_counts.ERROR }}</p>
+        </div> -->
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#addLogButton').click(function() {
+                $.post('/logs', $('#logForm').serialize(), function(data) {
+                    // alert(data);
+                    location.reload();  // Перезагрузка страницы после добавления лога
+                });
+            });
+
+            $('#clearLogButton').click(function() {
+                $.post('/clear_logs', function(data) {
+                    // alert(data);
+                    location.reload();  // Перезагрузка страницы после очистки логов
+                });
+            });
+        });
+        
+        var logCounts = JSON.parse('{{ log_counts | tojson | safe }}');
+
+        var logChart = document.getElementById('logChart').getContext('2d');
+        var myChart = new Chart(logChart, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(logCounts),
+                datasets: [
+                    {
+                        label: 'DEBUG',
+                        data: Object.values(logCounts).map(x => x.DEBUG),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'INFO',
+                        data: Object.values(logCounts).map(x => x.INFO),
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'WARNING',
+                        data: Object.values(logCounts).map(x => x.WARNING),
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'ERROR',
+                        data: Object.values(logCounts).map(x => x.ERROR),
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y + ''; 
+                                // при наведении
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Количество'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космические логи</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Космические логи</h1>
+        <form method="post">
+            <label for="log_entry">Сообщение:</label><br>
+            <textarea name="log_entry" rows="5" cols="50"></textarea><br>
+            <label for="log_level">Уровень:</label>
+            <select name="log_level">
+                <option value="DEBUG">DEBUG</option>
+                <option value="INFO" selected>INFO</option>
+                <option value="WARNING">WARNING</option>
+                <option value="ERROR">ERROR</option>
+            </select><br>
+            <input type="submit" value="Добавить запись в лог">
+        </form>
+        <form method="post" action="/clear_logs">
+            <input type="submit" value="Очистить логи">
+        </form>
+
+        <div class="logs">
+            {% for log in logs %}
+                <div class="log">
+                    <span class="timestamp">{{ log.timestamp }}</span>
+                    <span class="level-{{ log.level|lower }}">{{ log.level }}</span>
+                    <pre>{{ log.message }}</pre>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
+ -->
