@@ -23,9 +23,17 @@ logs = []
 class task_entity(Resource):
     def post(self,):
         """Обновление сущности"""
-        data = request.__dict__ 
-        pprint(data)
-        # workBitrix.main()
+        # data = request.__dict__ 
+        # ImmutableMultiDict([('event', 'ONCRMDYNAMICITEMUPDATE'), ('data[FIELDS][ID]', '87'), ('data[FIELDS][ENTITY_TYPE_ID]', '155'), ('ts', '1715004068')])
+        data = request.form
+        PAY_ID=data['data[FIELDS][ID]']
+        enityID=data['data[FIELDS][ENTITY_TYPE_ID]']
+        if enityID != '155': return 'Not pay'
+        
+        workBitrix.main(enityID, PAY_ID)
+        # print(f"{enityID=}")
+        # pprint(data)
+        
         # pprint(a)
 
         return 'OK'
