@@ -162,7 +162,11 @@ def main(PAY_ENTY_ID:str,PAY_ID:str):
     if pay['parentId31'] is None: 0#поле счет не заполнено, тогда заполняем
     
     numberInvoice=pay['ufCrm29Documentnumber']
-    dateInvoice=pay['ufCrm29Documentdate'].split('+')[0] #'2024-05-07T03:00:00+03:00'
+    try:
+        dateInvoice=pay['ufCrm29Documentdate'].split('+')[0] #'2024-05-07T03:00:00+03:00'
+    except:
+        send_log('ufCrm29Documentdate/Основание платежа: Счет от \nне заполнено', 'ERROR')
+        return 'dateInvoice not found'
 
     invoices=find_invoice(INVOICE_ID, numberInvoice, dateInvoice)
     send_log(f'find_invoice: {len(invoices)}')
