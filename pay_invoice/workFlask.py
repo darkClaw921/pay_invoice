@@ -16,7 +16,7 @@ HOST=os.getenv('HOST')
 app = Flask(__name__)
 api = Api(app, version='1.0', title='Pay/invoice system API',description='A pkGroup API\nЛоги можно посмотреть по пути /logs\nОчистить логи можно по пути /clear_logs\n',)
 logs = []
-
+PAY_ENTY_ID=os.getenv('PAY_ENTY_ID')
 
 
 @api.route('/pay')
@@ -28,7 +28,7 @@ class task_entity(Resource):
         data = request.form
         PAY_ID=data['data[FIELDS][ID]']
         enityID=data['data[FIELDS][ENTITY_TYPE_ID]']
-        if enityID != '155': return 'Not pay'
+        if enityID != f'{PAY_ENTY_ID}': return 'Not pay'
         
         workBitrix.main(enityID, PAY_ID)
         # print(f"{enityID=}")
