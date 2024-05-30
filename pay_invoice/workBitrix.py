@@ -39,8 +39,13 @@ class Deal:
     comments:str='COMMENTS'
     responsibleID:str='ASSIGNED_BY_ID'
 
-PAY_ENTY_ID=155
-INVOICE_ID=31
+# PAY_ENTY_ID=155
+# INVOICE_ID=31
+PAY_ENTY_ID=os.getenv('PAY_ENTY_ID')
+INVOICE_ID=os.getenv('INVOICE_ID')
+NUMBER_INVOICE_POLE=os.getenv('NUMBER_INVOICE_POLE')
+DATE_INVOICE_POLE=os.getenv('DATE_INVOICE_POLE')
+POLE_INVOICE=os.getenv('POLE_INVOICE')
 # async def te
 def find_deal(dealID:str):
     deal = bit.call('crm.deal.get', params={'id': dealID})
@@ -149,7 +154,7 @@ def update_product(productID, fields:dict):
     bit.call('crm.product.update', items={'ID':productID, 'fields':fields})
 
 def update_item(entityID, itemID, parentID):
-    bit.call('crm.item.update', items={'entityTypeId':entityID, 'id':itemID, 'fields':{"parentId31":parentID}})
+    bit.call('crm.item.update', items={'entityTypeId':entityID, 'id':itemID, 'fields':{POLE_INVOICE:parentID}})
 
 
 # if __name__ == '__main__':
@@ -159,13 +164,13 @@ def main(PAY_ENTY_ID:str,PAY_ID:str):
     pprint(pay) 
     send_log(f"pay: {pay['title']}")
   
-    if pay['parentId31'] is None: 0#поле счет не заполнено, тогда заполняем
+    if pay[POLE_INVOICE] is None: 0#поле счет не заполнено, тогда заполняем
     
-    numberInvoice=pay['ufCrm29Documentnumber']
+    numberInvoice=pay[NUMBER_INVOICE_POLE]
     try:
-        dateInvoice=pay['ufCrm29Documentdate'].split('+')[0] #'2024-05-07T03:00:00+03:00'
+        dateInvoice=pay[DATE_INVOICE_POLE].split('+')[0] #'2024-05-07T03:00:00+03:00'
     except:
-        send_log('ufCrm29Documentdate/Основание платежа: Счет от \nне заполнено', 'ERROR')
+        send_log('ufCrm28Documentdate/Основание платежа: Счет от \nне заполнено', 'ERROR')
         return 'dateInvoice not found'
 
     invoices=find_invoice(INVOICE_ID, numberInvoice, dateInvoice)
